@@ -1,0 +1,9 @@
+﻿namespace ShoppingAPI.Profiles
+{
+    public class ConfigurationForMapper
+    {
+        public readonly string SectionName = "Mapper";
+        public decimal markUp { get; set; }
+        public string greeting { get; set; }
+    }
+}

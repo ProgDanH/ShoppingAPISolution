@@ -1,14 +1,13 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using ShoppingAPI.Domain;
 using ShoppingAPI.Models.Catalog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace ShoppingAPI.Controllers
 {
@@ -18,23 +17,27 @@ namespace ShoppingAPI.Controllers
         private readonly IConfiguration _config;
         private readonly IMapper _mapper;
         private readonly MapperConfiguration _mapperConfig;
+        private readonly ILogger<CatalogController> _logger;
 
-        public CatalogController(ShoppingDataContext context, IConfiguration config, IMapper mapper, MapperConfiguration mapperConfig)
+        public CatalogController(ShoppingDataContext context, IConfiguration config, IMapper mapper, MapperConfiguration mapperConfig, ILogger<CatalogController> logger)
         {
             _context = context;
             _config = config;
             _mapper = mapper;
             _mapperConfig = mapperConfig;
+            _logger = logger;
         }
         [HttpPost("catalog")]
         public async Task<ActionResult> AddItem([FromBody] PostCatalogRequest newItem)
         {
             if (!ModelState.IsValid)
             {
+                _logger.LogInformation("Got a bad request. Looked like this {@newItem}", newItem);
                 return BadRequest(ModelState);
             }
             else
             {
+                // what am I missing?
                 var item = _mapper.Map<ShoppingItem>(newItem);
                 _context.ShoppingItems.Add(item);
                 await _context.SaveChangesAsync();
@@ -48,7 +51,8 @@ namespace ShoppingAPI.Controllers
             var data = await _context
                 .ShoppingItems
                 .AsNoTracking()
-                .TagWith("catalog#getcatalog")
+                .TagWith("catalog#getfullcatalog")
+                .Where(item => item.InInventory)
                 .ProjectTo<GetCatalogResponseSummaryItem>(_mapperConfig)
                 .ToListAsync();
 
@@ -56,6 +60,8 @@ namespace ShoppingAPI.Controllers
             {
                 Data = data
             };
+
+            _logger.LogInformation("Got a get on catalog.");
 
             return Ok(response);
         }

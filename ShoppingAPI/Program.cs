@@ -1,15 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Serilog;
-using ShoppingAPI;
 
-namespace ShoppingApi
+namespace ShoppingAPI
 {
     public class Program
     {
@@ -19,6 +13,7 @@ namespace ShoppingApi
                 .AddJsonFile("appsettings.Development.json")// TODO: Change this to AddConfiguration
                 .Build();
             Log.Logger = new LoggerConfiguration()
+                .WriteTo.Seq("http://localhost:5341")
                 .ReadFrom.Configuration(config)
                 .CreateLogger();
 
